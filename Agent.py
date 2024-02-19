@@ -42,9 +42,10 @@ class BaseAgent:
             # Softmax policy: π(s) = softmax(Q(s, a)/temp)
             probs = softmax(self.Q_sa[s],temp)
             # Sample action from softmax distribution
-            a = np.random.choice(range(self.n_actions),p=probs)
-              
+            #a = np.random.choice(range(self.n_actions),p=probs)
+            a=argmax(probs)
         return a
+    
         
     def update(self):
         raise NotImplementedError('For each agent you need to implement its specific back-up method') # Leave this and overwrite in subclasses in other files

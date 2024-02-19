@@ -12,12 +12,20 @@ from Agent import BaseAgent
 
 class QLearningAgent(BaseAgent):
         
-    def update(self,s,a,r,s_next,done):
+    #def update(self,s,a,r,s_next,done):
         # TO DO: Add own code
-        max_next_Q = np.max(self.Q_sa[s_next]) if not done else 0
-        target = r + self.gamma * max_next_Q
-        self.Q_sa[s,a] += self.learning_rate * (target - self.Q_sa[s,a])
-        pass
+        #if done:
+          #  target = r
+        #else:
+            #max_next_Q = np.max(self.Q_sa[s_next]) #if not done else 0
+            #target = r + self.gamma * max_next_Q
+            #self.Q_sa[s,a] += self.learning_rate * (target - self.Q_sa[s,a])
+
+    def update(self, s, a, r, s_next, done):
+        max_q_next = np.max(self.Q_sa[s_next]) if not done else 0
+        target = r + self.gamma * max_q_next
+        self.Q_sa[s, a] += self.learning_rate * (target - self.Q_sa[s, a])
+        
 
 def q_learning(n_timesteps, learning_rate, gamma, policy='egreedy', epsilon=None, temp=None, plot=True, eval_interval=500):
     ''' runs a single repetition of q_learning
@@ -31,40 +39,42 @@ def q_learning(n_timesteps, learning_rate, gamma, policy='egreedy', epsilon=None
     
     # TO DO: Write your Q-learning algorithm here!
     rewards = []
-    timestep = 0
+    s = env.reset()
 
-    for _ in range(n_timesteps):
-        s=env.reset()
-        done = False
+    for timestep in range(n_timesteps):
         tot_reward = 0
-        while not done:
-            # Select action using the specified policy
-            a = agent.select_action(s,policy,epsilon,temp)
-            # Take action a, observe next state and reward
-            s_next,r,done = env.step(a)
-            # Update Q-value estimate
-            agent.update(s,a,r,s_next,done)
-            # Update reward and move to next state
-            tot_reward += r
-            s = s_next
-            timestep += 1
 
-            # Evaluate the policy every eval_interval timesteps
-            if timestep % eval_interval == 0:
-                eval_return = agent.evaluate(eval_env)
-                eval_returns.append(eval_return)
-                #eval_return.append(eval_return)
-                #mean_eval_returns = np.mean(eval_returns)
-                #eval_returns.append(mean_eval_returns)
-                eval_timesteps.append(timestep)
-            rewards.append(tot_reward)
+        #s =s
+        # Select action using the specified policy
+        a = agent.select_action(s,policy,epsilon,temp)
+        # Take action a, observe next state and reward
+        s_next,r,done = env.step(a)
+        # Update Q-value estimate
+        agent.update(s,a,r,s_next,done)
+        # Update reward and move to next state
+        tot_reward += r
+        if done:
+            s = env.reset()
+        else:
+            s = s_next
+
+        rewards.append(tot_reward)
+
+
+        # Evaluate the agent every eval_interval timesteps
+        if timestep % eval_interval == 0:
+            eval_return = agent.evaluate(eval_env)
+            eval_returns.append(eval_return)
+            eval_timesteps.append(timestep)
+            
         
     
-        #if plot:
-        #env.render(Q_sa=pi.Q_sa,plot_optimal_policy=True,step_pause=0.1) # Plot the Q-value estimates during Q-learning execution
-            #env.render(Q_sa=agent.Q_sa,plot_optimal_policy=True,step_pause=0.1) #non plotta??? plotta solo se lo indento dentro l'if
+        if plot:
+            # Plot the Q-value estimates during Q-learning execution
+            env.render(Q_sa=agent.Q_sa,plot_optimal_policy=True,step_pause=0.1) 
 
-    return np.array(eval_returns), np.array(eval_timesteps)   
+    return np.array(eval_returns), np.array(eval_timesteps)  #non sono certa dei valori timesteps 
+
 
 def test():
     
@@ -74,7 +84,7 @@ def test():
     learning_rate = 0.1
 
     # Exploration
-    policy = 'softmax' # 'egreedy' or 'softmax' 
+    policy = 'egreedy' # 'egreedy' or 'softmax' 
     epsilon = 0.1
     temp = 1.0
     

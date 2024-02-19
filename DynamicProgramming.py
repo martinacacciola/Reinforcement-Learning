@@ -75,10 +75,9 @@ def Q_value_iteration(env, gamma=1.0, threshold=0.001):
                 QIagent.update(s,a,p_sas,r_sas)
                 #Update max_error 
                 max_error = max(max_error, abs(QIagent.Q_sa[s,a] - old_q_value))
-        #Plot current Q-value estimates
-        env.render(Q_sa=QIagent.Q_sa,plot_optimal_policy=True,step_pause=0.2)
-        # Plot current Q-value estimates
-        #plot_q_values(QIagent.Q_sa, iteration) #aggiungo
+        #Plot current Q-value estimates - !uncommenta per il plot
+        #env.render(Q_sa=QIagent.Q_sa,plot_optimal_policy=True,step_pause=0.2)
+     
         #Print max abs error after each full sweep
         print("Iteration: {}, max_error: {}".format(iteration, max_error))
         iteration += 1
@@ -112,6 +111,7 @@ def experiment():
     print("Optimal value at the start state: {}".format(opt_value_start))
     print("Average timesteps to goal: {}".format(avg_timesteps_to_goal))
     print("Mean reward per timestep under optimal policy: {}".format(mean_reward_per_timestep))
+    print("Optimal episode return: {}".format(tot_reward))
     return avg_timesteps_to_goal, opt_value_start, mean_reward_per_timestep
     
 if __name__ == '__main__':
