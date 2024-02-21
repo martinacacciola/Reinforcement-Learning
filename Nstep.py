@@ -18,13 +18,20 @@ class NstepQLearningAgent(BaseAgent):
         rewards is a list of rewards observed in the episode, of length T_ep
         done indicates whether the final s in states is was a terminal state '''
         # TO DO: Add own code
-        T = len(actions)
-        self.n = n
+        T = len(states) - 1
+        #self.n = n
         for t in range(T):
-            G = sum([self.gamma**i * rewards[t+i] for i in range(min(self.n, T-t))])
-            if t+self.n < T:
-                G += (self.gamma**self.n) * np.max(self.Q_sa[states[t+self.n]])
-            self.Q_sa[states[t], actions[t]] += self.learning_rate * (G - self.Q_sa[states[t], actions[t]])
+                # Number of rewards left to sum
+                m = min(n, T-t)
+                G=0
+                # If state t+m is terminal
+                if t + m >= T: # N-step target without bootstrap #==
+                #if done:
+                    G = sum([self.gamma**i * rewards[t+i] for i in range(m)])
+                else: # N-step target
+                   G = sum([self.gamma**i * rewards[t+i] + self.gamma**m * max(self.Q_sa[states[t+m],actions]) for i in range(m)]) # N-step target
+                # End of episode
+                self.Q_sa[states[t], actions[t]] += self.learning_rate * (G - self.Q_sa[states[t], actions[t]])
 
 def n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma, 
                    policy='egreedy', epsilon=None, temp=None, plot=True, n=5, eval_interval=500):
@@ -43,7 +50,7 @@ def n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma,
         state = env.reset()
 
         # Collect an episode
-        for t in range(n_timesteps):
+        for _ in range(max_episode_length): # Changed t in _
             action = pi.select_action(state, policy, epsilon, temp)
             next_state, reward, done = env.step(action)
             states.append(state)
@@ -58,13 +65,13 @@ def n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma,
 
         # Evaluate the policy at regular intervals
         if t % eval_interval == 0:
-            returns = pi.evaluate(eval_env, n_eval_episodes=30, max_episode_length=100) #chose the values?
+            returns = pi.evaluate(eval_env) #chose the values?, n_eval_episodes=30, max_episode_length=100
             eval_returns.append(returns)
             eval_timesteps.append(t)
         
-        if plot: #comment to not plot
-            env.render(Q_sa=pi.Q_sa,plot_optimal_policy=True,step_pause=0.1) # Plot the Q-value estimates during n-step Q-learning execution
-        
+        #if plot: #comment to not plot
+            #env.render(Q_sa=pi.Q_sa,plot_optimal_policy=True,step_pause=0.1) # Plot the Q-value estimates during n-step Q-learning execution
+    print(eval_returns)   
     return np.array(eval_returns), np.array(eval_timesteps) 
 
 def test():
