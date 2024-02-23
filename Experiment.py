@@ -11,7 +11,7 @@ import time
 
 from Q_learning import q_learning
 from SARSA import sarsa
-from Nstep import n_step_Q
+from Nstep_1 import n_step_Q
 from MonteCarlo import monte_carlo
 from Helper import LearningCurvePlot, smooth
 
@@ -32,7 +32,6 @@ def average_over_repetitions(backup, n_repetitions, n_timesteps, max_episode_len
         elif backup == 'mc':
             returns, timesteps = monte_carlo(n_timesteps, max_episode_length, learning_rate, gamma, 
                    policy, epsilon, temp, plot, eval_interval)
-
         returns_over_repetitions.append(returns)
         
     print('Running one setting takes {} minutes'.format((time.time()-now)/60))
@@ -46,7 +45,7 @@ def average_over_repetitions(backup, n_repetitions, n_timesteps, max_episode_len
 def experiment():
     ####### Settings
     # Experiment      
-    n_repetitions = 20 #it was 20!!!
+    n_repetitions = 1 #it was 20!!!
     smoothing_window = 9 # Must be an odd number. Use 'None' to switch smoothing off!
     plot = False # Plotting is very slow, switch it off when we run repetitions
     
@@ -54,7 +53,7 @@ def experiment():
     n_timesteps = 50001 # Set one extra timestep to ensure evaluation at start and end, it was 50001 !!!!
     eval_interval = 1000
     max_episode_length = 100
-    gamma = 1.0
+    gamma = 0.5 #it was 1.0
     
     # Parameters we will vary in the experiments, set them to some initial values: 
     # Exploration
@@ -97,7 +96,7 @@ def experiment():
         Plot.add_curve(timesteps,learning_curve,label=r'softmax, $ \tau $ = {}'.format(temp))
     Plot.add_hline(optimal_episode_return, label="DP optimum")
     Plot.save('exploration.png')
-  '''
+  
     ###### Assignment 3: Q-learning versus SARSA
     policy = 'egreedy'
     epsilon = 0.1 # set epsilon back to original value 
@@ -112,7 +111,7 @@ def experiment():
             Plot.add_curve(timesteps,learning_curve,label=r'{}, $\alpha$ = {} '.format(backup_labels[backup],learning_rate))
     Plot.add_hline(optimal_episode_return, label="DP optimum")
     Plot.save('on_off_policy.png')
-    '''   
+'''   
     # ##### Assignment 4: Back-up depth
     policy = 'egreedy'
     epsilon = 0.05 # set epsilon back to original value
@@ -131,6 +130,6 @@ def experiment():
     Plot.add_curve(timesteps,learning_curve,label='Monte Carlo')        
     Plot.add_hline(optimal_episode_return, label="DP optimum")
     Plot.save('depth.png')
-'''
+
 if __name__ == '__main__':
     experiment()

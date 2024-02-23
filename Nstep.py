@@ -17,24 +17,21 @@ class NstepQLearningAgent(BaseAgent):
         actions is a list of actions observed in the episode, of length T_ep
         rewards is a list of rewards observed in the episode, of length T_ep
         done indicates whether the final s in states is was a terminal state '''
-        # TO DO: Add own code
-        T = len(states) - 1
-        #self.n = n
-        for t in range(T):
-                # Number of rewards left to sum
-                m = min(n, T-t)
-                G=0
-                # If state t+m is terminal
-                if t + m >= T: # N-step target without bootstrap #==
-                #if done:
-                    G = sum([self.gamma**i * rewards[t+i] for i in range(m)])
-                else: # N-step target
-                   G = sum([self.gamma**i * rewards[t+i] + self.gamma**m * max(self.Q_sa[states[t+m],actions]) for i in range(m)]) # N-step target
-                # End of episode
-                self.Q_sa[states[t], actions[t]] += self.learning_rate * (G - self.Q_sa[states[t], actions[t]])
+        T_ep = len(rewards)
 
+        for t in range(T_ep):
+            m = min(n, T_ep - t)
+            G = 0
+            for i in range(m):
+                G = (self.gamma ** i ) * rewards[t + i]
+                
+            if  not done:
+                G += (self.gamma ** m) * max(self.Q_sa[states[t + m]])
+           
+            self.Q_sa[states[t], actions[t]] += self.learning_rate * (G - self.Q_sa[states[t], actions[t]])
+        
 def n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma, 
-                   policy='egreedy', epsilon=None, temp=None, plot=True, n=5, eval_interval=500):
+                   wpolicy='egreedy', epsilon=None, temp=None, plot=True, n=5, eval_interval=500):
     ''' runs a single repetition of an MC rl agent
     Return: rewards, a vector with the observed rewards at each timestep ''' 
     
@@ -43,41 +40,45 @@ def n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma,
     pi = NstepQLearningAgent(env.n_states, env.n_actions, learning_rate, gamma)
     eval_timesteps = []
     eval_returns = []
-
-    # TO DO: Write your n-step Q-learning algorithm here!
-    for t in range(n_timesteps):
-        states, actions, rewards, done = [], [], [], False
-        state = env.reset()
-
-        # Collect an episode
-        for _ in range(max_episode_length): # Changed t in _
-            action = pi.select_action(state, policy, epsilon, temp)
-            next_state, reward, done = env.step(action)
+    
+    while n_timesteps != 0:
+        states = [env.reset()]
+        actions = []
+        rewards = []
+        done = False
+        
+        for _ in range(max_episode_length):
+            actions.append(pi.select_action(states[-1], epsilon=epsilon))
+            state, reward, done = env.step(actions[-1])
+        
             states.append(state)
-            actions.append(action)
             rewards.append(reward)
-            state = next_state
+            if n_timesteps % eval_interval == 0:
+                eval_timesteps.append(n_timesteps)
+                x = pi.evaluate(eval_env)
+                eval_returns.append(x)
+                # print(x)
+            n_timesteps -= 1
+            
+            if n_timesteps == 0:
+                break
             if done:
                 break
-        
-        # Update Q-values using n-step Q-learning
-        pi.update(states, actions, rewards, done, n)
 
-        # Evaluate the policy at regular intervals
-        if t % eval_interval == 0:
-            returns = pi.evaluate(eval_env) #chose the values?, n_eval_episodes=30, max_episode_length=100
-            eval_returns.append(returns)
-            eval_timesteps.append(t)
+        pi.update(states, actions, rewards, done, n)
         
-        #if plot: #comment to not plot
-            #env.render(Q_sa=pi.Q_sa,plot_optimal_policy=True,step_pause=0.1) # Plot the Q-value estimates during n-step Q-learning execution
-    print(eval_returns)   
+    # TO DO: Write your Q-learning algorithm here!
+    eval_timesteps = eval_timesteps[::-1]
+    
+    if plot:
+       env.render(Q_sa=pi.Q_sa,plot_optimal_policy=True,step_pause=0.1) # Plot the Q-value estimates during SARSA execution
+       
     return np.array(eval_returns), np.array(eval_timesteps) 
 
 def test():
-    n_timesteps = 10000
+    n_timesteps = 50000
     max_episode_length = 100
-    gamma = 1.0
+    gamma = 0.99
     learning_rate = 0.1
     n = 5
     
@@ -87,7 +88,7 @@ def test():
     temp = 1.0
     
     # Plotting parameters
-    plot = True
+    plot = False
     n_step_Q(n_timesteps, max_episode_length, learning_rate, gamma, 
                    policy, epsilon, temp, plot, n=n)
     
