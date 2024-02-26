@@ -1,4 +1,4 @@
-Assignments of the course 'Reinforcement Learning' at Leiden University AA 23-24 held for MS Computer Science.
+Assignments of the course 'Reinforcement Learning' at Leiden University AY 23-24 held for MS Computer Science.
 The following topics and algorithms are planned to be discussed:
 
 - Tabular Value-based Reinforcement Learning, such as Q-learning
