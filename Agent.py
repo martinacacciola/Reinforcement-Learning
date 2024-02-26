@@ -7,7 +7,7 @@ By Thomas Moerland
 """
 
 import numpy as np
-from Helper import softmax, argmax
+from Helper import softmax, argmax, linear_anneal
 
 class BaseAgent:
 
@@ -27,6 +27,7 @@ class BaseAgent:
         elif policy == 'egreedy':
             if epsilon is None:
                 raise KeyError("Provide an epsilon")
+
                 
             if np.random.rand() < epsilon:
                 # Random action (exploration)
